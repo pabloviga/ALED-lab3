@@ -6,7 +6,7 @@ package es.upm.dit.aled.lab3;
  * @author mmiguel, rgarciacarmona
  *
  */
-public class FASTAException extends Exception{
+public class FASTAException extends Exception{ //llama a la clase Exception y lanza mensaje
 
 	public FASTAException(String msg) {
 		super(msg);

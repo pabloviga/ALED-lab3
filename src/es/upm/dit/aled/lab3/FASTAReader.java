@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Reads a FASTA file containing genetic information and allows for the search
@@ -21,7 +22,7 @@ import java.util.List;
 public class FASTAReader {
 
 	protected byte[] content;
-	protected int validBytes;
+	protected int validBytes; //longitud de cada cadena de ADN ya que esta dividida en diferentes lineas (usamos esto en vez de content.length)
 
 	/**
 	 * Creates a new FASTAReader from a FASTA file.
@@ -117,7 +118,9 @@ public class FASTAReader {
 	 * Returns true if the pattern is present at the given position; false
 	 * otherwise.
 	 */
-	private boolean compare(byte[] pattern, int position) throws FASTAException {
+	//pattern --> secuencia
+	//content --> genoma
+	private boolean compare(byte[] pattern, int position) throws FASTAException { //lanza excepcion cuando me salgo de los bytes validos
 		if (position + pattern.length > validBytes) {
 			throw new FASTAException("Pattern goes beyond the end of the file.");
 		}
@@ -135,8 +138,20 @@ public class FASTAReader {
 	 * pattern when one has been found to be different.
 	 */
 	private boolean compareImproved(byte[] pattern, int position) throws FASTAException {
-		// TODO
-		return false;
+		// Done
+		if (position + pattern.length > validBytes) {
+			throw new FASTAException("Pattern goes beyond the end of the file.");
+		}
+		
+		boolean match = true;
+		
+		for (int i=0; i < pattern.length; i++) {
+			if (pattern[i] != content[position+i]) {
+				return false;
+			}
+		}
+		
+		return match;
 	}
 
 	/*
@@ -148,8 +163,20 @@ public class FASTAReader {
 	 * ones present in the indicated position.
 	 */
 	private int compareNumErrors(byte[] pattern, int position) throws FASTAException {
-		// TODO
-		return -1;
+		// Done
+		int numErrors = 0;
+		
+		if (position + pattern.length > validBytes) {
+			throw new FASTAException("Pattern goes beyond the end of the file.");
+		}
+		
+		for (int i=0; i < pattern.length; i++) {
+			if (pattern[i] != content[position+i]) {
+				numErrors++;
+			}
+		}
+		
+		return numErrors;
 	}
 
 	/**
@@ -161,9 +188,20 @@ public class FASTAReader {
 	 * @return All the positions of the first character of every occurrence of the
 	 *         pattern in the data.
 	 */
-	public List<Integer> search(byte[] pattern) {
-		// TODO
-		return null;
+	public List<Integer> search(byte[] pattern) { //se usan bytes en vez de caracteres pq ocupa menos y sirve igual
+		// Done
+		List<Integer> positions = new ArrayList<>();
+		
+		for (int i=0; i < validBytes - 1; i++) { //CUIDADO: recorres content que es el genoma, NO pattern. aun así, "content.length" es lo mismo que "validBytes-1" ya que la ultima posicion de content es igual a validBytes-1 (el menos 1 es pq validBytes empieza en cero)
+			try {	
+				if (compareImproved(pattern, i)) {
+					positions.add(i);
+				}
+			} catch (FASTAException e) {
+				break;
+			}
+		}
+		return positions;
 	}
 
 	/**
@@ -179,18 +217,29 @@ public class FASTAReader {
 	 *         pattern (with up to 1 errors) in the data.
 	 */
 	public List<Integer> searchSNV(byte[] pattern) {
-		// TODO
-		return null;
+		// Done
+		List<Integer> res = new ArrayList<>();
+		
+		for (int i=0; i < validBytes - 1; i++) {
+			try {
+				if (compareNumErrors(pattern, i) == 0 || compareNumErrors(pattern, i) ==1) { //compareNumErrors(pattern, i) <= 1 
+					res.add(i);
+				}
+			} catch (FASTAException e) {
+				break;
+			}
+		}
+		return res;
 	}
 
 	public static void main(String[] args) {
 		long t1 = System.nanoTime();
-		FASTAReader reader = new FASTAReader(args[0]);
+		FASTAReader reader = new FASTAReader(args[0]); //args[0] es el fileName
 		if (args.length == 1)
 			return;
 		System.out.println("Tiempo de apertura de fichero: " + (System.nanoTime() - t1));
 		long t2 = System.nanoTime();
-		List<Integer> posiciones = reader.search(args[1].getBytes());
+		List<Integer> posiciones = reader.searchSNV(args[1].getBytes());
 		System.out.println("Tiempo de búsqueda: " + (System.nanoTime() - t2));
 		if (posiciones.size() > 0) {
 			for (Integer pos : posiciones)

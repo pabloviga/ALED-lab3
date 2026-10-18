@@ -82,14 +82,42 @@ public class FASTAReaderSuffixes extends FASTAReader {
 		// TODO
 		List<Integer> res = new ArrayList<>();
 		
-		Suffix lo = suffixes[0];
-		Suffix hi =suffixes[suffixes.length-1];
+		int lo = 0;
+		int hi = suffixes.length-1;
 		
 		
-		
+		while (lo <= hi) {
+			int m = (lo + hi)/2;
+			int posSuffix = suffixes[m].suffixIndex;
+			boolean found;
+			
+			for (int index = 0; index < validBytes; index++) {
+				if (pattern[index] != content[posSuffix+index]) {
+					found = false;
+					return res;
+//					if (index == pattern.length) {
+//						res.add(posSuffix);
+//						found = true;
+//					}
+				}
+	
+				if (pattern[index] < content[posSuffix+index]) {
+					hi = m--;
+					index = 0;
+				}
+				
+				if (pattern[index] > content[posSuffix+index]) {
+					lo = m++;
+					index = 0;
+				}
+				
+				res.add(index);
+			}
+		}
 		return res;
 	}
 
+	
 	public static void main(String[] args) {
 		long t1 = System.nanoTime();
 		FASTAReaderSuffixes reader = new FASTAReaderSuffixes(args[0]);

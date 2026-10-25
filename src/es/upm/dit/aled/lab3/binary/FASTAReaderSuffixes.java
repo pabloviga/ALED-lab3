@@ -99,6 +99,7 @@ public class FASTAReaderSuffixes extends FASTAReader {
 //						res.add(posSuffix);
 //						found = true;
 //					}
+					//MIRAR ESTO NO TENGO NI IDEA
 				}
 	
 				if (pattern[index] < content[posSuffix+index]) {

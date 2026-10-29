@@ -83,23 +83,22 @@ public class FASTAReaderSuffixes extends FASTAReader {
 		List<Integer> res = new ArrayList<>();
 		
 		int lo = 0;
-		int hi = suffixes.length-1;
+		int hi = suffixes.length;
+		boolean found = false;
+		int index = 0;
 		
-		
-		while (lo <= hi) {
+		while (!found && (lo <= hi)) {
 			int m = (lo + hi)/2;
 			int posSuffix = suffixes[m].suffixIndex;
-			boolean found;
 			
-			for (int index = 0; index < validBytes; index++) {
-				if (pattern[index] != content[posSuffix+index]) {
-					found = false;
-					return res;
-//					if (index == pattern.length) {
-//						res.add(posSuffix);
-//						found = true;
-//					}
-					//MIRAR ESTO NO TENGO NI IDEA
+			for (int i = 0; i < validBytes; i++) {
+				if (pattern[index] == content[posSuffix+index]) {
+					index++;
+					
+					if (index == pattern.length) {
+						res.add(posSuffix);
+						found = true;
+					}
 				}
 	
 				if (pattern[index] < content[posSuffix+index]) {
@@ -112,7 +111,6 @@ public class FASTAReaderSuffixes extends FASTAReader {
 					index = 0;
 				}
 				
-				res.add(index);
 			}
 		}
 		return res;
